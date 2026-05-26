@@ -1,0 +1,8 @@
+{
+  "general": {"query": "best project management tool"},
+  "organic": [
+    {"title": "Asana vs Trello vs Monday — best PM tool 2026", "link": "https://example.com/a", "description": "Comparing Asana, Trello and Monday for PM teams"},
+    {"title": "Top 10 project management tools", "link": "https://example.com/b", "description": "Asana, ClickUp, Notion, Jira and others"},
+    {"title": "Why we switched from Asana to ClickUp", "link": "https://example.com/c", "description": "Our team's experience"}
+  ]
+}

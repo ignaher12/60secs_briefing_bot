@@ -31,5 +31,19 @@ class BrightDataClient:
         data = resp.json()
         return data.get("organic", [])
 
+    async def fetch(self, url: str) -> str:
+        self._bump()
+        resp = await self._client.post(
+            "https://api.brightdata.com/request",
+            headers={"Authorization": f"Bearer {self.cfg.bright_data_token}"},
+            json={
+                "zone": self.cfg.bright_data_unlocker_zone,
+                "url": url,
+                "format": "raw",
+            },
+        )
+        resp.raise_for_status()
+        return resp.text
+
     async def aclose(self):
         await self._client.aclose()

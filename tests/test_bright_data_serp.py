@@ -10,15 +10,21 @@ async def test_serp_search_returns_results(fixtures_dir):
     async with respx.mock(base_url="https://api.brightdata.com") as mock:
         mock.post("/request").mock(return_value=httpx.Response(200, json=payload))
         client = BrightDataClient()
-        results = await client.serp_search("best project management tool")
-        assert len(results) == 3
-        assert results[0]["title"].startswith("Asana vs Trello")
-        assert client.call_count == 1
+        try:
+            results = await client.serp_search("best project management tool")
+            assert len(results) == 3
+            assert results[0]["title"].startswith("Asana vs Trello")
+            assert client.call_count == 1
+        finally:
+            await client.aclose()
 
 @pytest.mark.asyncio
 async def test_cap_exceeded_raises():
     from wedge.bright_data import BrightDataCallCapExceeded
     client = BrightDataClient(cap=0)
-    with pytest.raises(BrightDataCallCapExceeded):
-        async with respx.mock(base_url="https://api.brightdata.com"):
-            await client.serp_search("anything")
+    try:
+        with pytest.raises(BrightDataCallCapExceeded):
+            async with respx.mock(base_url="https://api.brightdata.com"):
+                await client.serp_search("anything")
+    finally:
+        await client.aclose()

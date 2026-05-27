@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><title>Brief — {{ brief.idea }}</title><link rel="stylesheet" href="/static/app.css"></head>
+<body>
+<main>
+  <a href="/">← New brief</a>
+  <h1>{{ brief.idea }}</h1>
+  {% if brief.partial %}<p class="warning">Partial result — Bright Data call cap was hit.</p>{% endif %}
+  <section><h2>TL;DR</h2><p>{{ brief.tldr }}</p></section>
+  <section>
+    <h2>Competitors</h2>
+    <table>
+      <tr><th>Name</th><th>G2 reviews</th><th>Rating</th></tr>
+      {% for c in brief.competitor_table %}
+      <tr><td><a href="{{ c.g2_url }}">{{ c.name }}</a></td><td>{{ c.review_count }}</td><td>{{ c.avg_rating }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+  <section>
+    <h2>Complaint Themes</h2>
+    {% for t in brief.themes %}
+    <article>
+      <h3>{{ t.label }} <small>({{ t.severity }}, {{ t.frequency }} mentions)</small></h3>
+      <p>Affects: {{ t.competitors_affected | join(", ") }}</p>
+      <ul>{% for q in t.sample_quotes %}<li>"{{ q }}"</li>{% endfor %}</ul>
+    </article>
+    {% endfor %}
+  </section>
+  <section><h2>Opportunity Gaps</h2><ul>{% for g in brief.gaps %}<li>{{ g }}</li>{% endfor %}</ul></section>
+  <section><h2>Positioning Angles</h2><ul>{% for p in brief.positioning %}<li>{{ p }}</li>{% endfor %}</ul></section>
+  <form method="post" action="/watch/{{ brief.job_id }}"><button>Watch this idea (weekly updates)</button></form>
+</main>
+</body></html>

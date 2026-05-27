@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><title>Generating…</title><link rel="stylesheet" href="/static/app.css"></head>
+<body>
+<main>
+  <h1>Generating brief for "{{ idea }}"</h1>
+  <ul id="events" class="progress"></ul>
+  <script>
+    const es = new EventSource("/stream/{{ job_id }}");
+    const list = document.getElementById("events");
+    es.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      const li = document.createElement("li");
+      li.textContent = data.name + " — " + JSON.stringify(data.data);
+      list.appendChild(li);
+      if (data.name === "brief_ready") {
+        es.close();
+        window.location = "/brief/{{ job_id }}";
+      } else if (data.name === "error") {
+        es.close();
+      }
+    };
+  </script>
+</main>
+</body></html>

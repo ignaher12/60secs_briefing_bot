@@ -1,4 +1,5 @@
 import httpx
+from urllib.parse import urlencode
 from wedge.config import load_config
 
 class BrightDataCallCapExceeded(Exception):
@@ -18,12 +19,13 @@ class BrightDataClient:
 
     async def serp_search(self, query: str) -> list[dict]:
         self._bump()
+        qs = urlencode({"q": query, "brd_json": 1})
         resp = await self._client.post(
             "https://api.brightdata.com/request",
             headers={"Authorization": f"Bearer {self.cfg.bright_data_token}"},
             json={
                 "zone": self.cfg.bright_data_serp_zone,
-                "url": f"https://www.google.com/search?q={query}&brd_json=1",
+                "url": f"https://www.google.com/search?{qs}",
                 "format": "raw",
             },
         )

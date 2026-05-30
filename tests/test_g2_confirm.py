@@ -6,7 +6,7 @@ class FakeBD:
     def __init__(self, html_by_url):
         self.html_by_url = html_by_url
         self.calls = []
-    async def browser_render(self, url):
+    async def fetch(self, url):
         self.calls.append(url)
         return self.html_by_url.get(url, "<html></html>")
 

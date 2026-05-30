@@ -17,7 +17,7 @@ def _strip_html(s: str) -> str:
 async def _mine_g2(competitor: Competitor, *, bd) -> list[Complaint]:
     url = f"{competitor.g2_url}?order=most_recent&filters[ratings][]=1&filters[ratings][]=2"
     try:
-        html = await bd.browser_render(url)
+        html = await bd.fetch(url)
     except Exception:
         return []
     out: list[Complaint] = []

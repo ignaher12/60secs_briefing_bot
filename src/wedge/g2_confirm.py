@@ -2,8 +2,10 @@ import re
 from wedge.types import Candidate, Competitor
 
 _SLUG_RE = re.compile(r"[^a-z0-9]+")
-_RATING_RE = re.compile(r'ratingValue"\s+content="([\d.]+)"')
-_COUNT_RE = re.compile(r'reviewCount"\s+content="(\d+)"')
+# G2's schema.org markup puts `content` before `itemprop`, e.g.
+# <meta content="4.4" itemprop="ratingValue">
+_RATING_RE = re.compile(r'content="([\d.]+)"\s+itemprop="ratingValue"')
+_COUNT_RE = re.compile(r'content="(\d+)"\s+itemprop="reviewCount"')
 
 def _slug(name: str) -> str:
     return _SLUG_RE.sub("-", name.lower()).strip("-")
@@ -16,7 +18,7 @@ async def confirm_on_g2(candidates: list[Candidate], *, bd, max_keep: int = 5) -
     for c in candidates:
         url = _g2_url(c.name)
         try:
-            html = await bd.browser_render(url)
+            html = await bd.fetch(url)
         except Exception:
             continue
         r = _RATING_RE.search(html)

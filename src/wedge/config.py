@@ -7,7 +7,7 @@ load_dotenv()
 
 @dataclass(frozen=True)
 class Config:
-    anthropic_api_key: str
+    nvidia_api_key: str
     bright_data_token: str
     bright_data_serp_zone: str
     bright_data_unlocker_zone: str
@@ -18,7 +18,7 @@ class Config:
 
 def load_config() -> Config:
     return Config(
-        anthropic_api_key=os.environ["ANTHROPIC_API_KEY"],
+        nvidia_api_key=os.environ["NVIDIA_API_KEY"],
         bright_data_token=os.environ["BRIGHT_DATA_API_TOKEN"],
         bright_data_serp_zone=os.environ["BRIGHT_DATA_SERP_ZONE"],
         bright_data_unlocker_zone=os.environ["BRIGHT_DATA_UNLOCKER_ZONE"],

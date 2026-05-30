@@ -5,7 +5,7 @@ from wedge.types import PlannerOutput, Candidate, Competitor, Complaint, Brief
 @pytest.fixture
 def client(monkeypatch):
     monkeypatch.setenv("WEDGE_DB_PATH", ":memory:")
-    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
+    monkeypatch.setenv("NVIDIA_API_KEY", "test")
     monkeypatch.setenv("BRIGHT_DATA_API_TOKEN", "test")
     monkeypatch.setenv("BRIGHT_DATA_SERP_ZONE", "test")
     monkeypatch.setenv("BRIGHT_DATA_UNLOCKER_ZONE", "test")

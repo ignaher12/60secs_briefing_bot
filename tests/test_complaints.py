@@ -1,3 +1,4 @@
+import asyncio
 import pytest
 from wedge.complaints import mine_complaints
 from wedge.types import Competitor, PlannerOutput
@@ -42,3 +43,27 @@ async def test_mine_complaints_pulls_g2_reddit_and_serp(fixtures_dir):
     g2_excerpts = [c.excerpt for c in out if c.source == "g2"]
     assert any("mobile app crashes" in e for e in g2_excerpts)
     assert not any("Love it" in e for e in g2_excerpts)
+
+
+class ConcurrencyBD:
+    def __init__(self):
+        self.in_flight = 0
+        self.max_in_flight = 0
+    async def fetch(self, url):
+        self.in_flight += 1
+        self.max_in_flight = max(self.max_in_flight, self.in_flight)
+        await asyncio.sleep(0.05)
+        self.in_flight -= 1
+        return "<html><body>some complaint text</body></html>"
+    async def serp_search(self, q):
+        return [{"title": "t", "link": f"https://reddit.com/r/x/{i}", "description": ""} for i in range(3)]
+
+
+@pytest.mark.asyncio
+async def test_mine_complaints_fetches_concurrently():
+    competitor = Competitor(name="Asana", g2_url="https://www.g2.com/products/asana/reviews",
+                            review_count=100, avg_rating=4.0)
+    plan = PlannerOutput(serp_queries=[], target_subreddits=["r/saas"], g2_category_hints=[])
+    bd = ConcurrencyBD()
+    await mine_complaints(competitor, plan, bd=bd)
+    assert bd.max_in_flight > 1

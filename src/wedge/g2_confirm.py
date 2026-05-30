@@ -1,3 +1,4 @@
+import asyncio
 import re
 from wedge.types import Candidate, Competitor
 
@@ -13,13 +14,18 @@ def _slug(name: str) -> str:
 def _g2_url(name: str) -> str:
     return f"https://www.g2.com/products/{_slug(name)}/reviews"
 
+async def _fetch_or_none(bd, url: str) -> str | None:
+    try:
+        return await bd.fetch(url)
+    except Exception:
+        return None
+
 async def confirm_on_g2(candidates: list[Candidate], *, bd, max_keep: int = 5) -> list[Competitor]:
+    urls = [_g2_url(c.name) for c in candidates]
+    htmls = await asyncio.gather(*(_fetch_or_none(bd, url) for url in urls))
     confirmed: list[Competitor] = []
-    for c in candidates:
-        url = _g2_url(c.name)
-        try:
-            html = await bd.fetch(url)
-        except Exception:
+    for c, url, html in zip(candidates, urls, htmls):
+        if html is None:
             continue
         r = _RATING_RE.search(html)
         n = _COUNT_RE.search(html)

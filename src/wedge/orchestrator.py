@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass, asdict
 from typing import Any, AsyncIterator
 from wedge.planner import plan as _plan_fn
@@ -39,9 +40,9 @@ async def run_pipeline(*, job_id: str, db, bd, llm) -> AsyncIterator[Event]:
         yield Event("competitors_confirmed", {"names": [c.name for c in competitors]})
 
         db.set_status(job_id, "mining")
+        mined = await asyncio.gather(*(_mine(comp, plan, bd=bd) for comp in competitors))
         all_complaints = []
-        for comp in competitors:
-            complaints = await _mine(comp, plan, bd=bd)
+        for comp, complaints in zip(competitors, mined):
             all_complaints.extend(complaints)
             yield Event("complaints_mined", {"competitor": comp.name, "count": len(complaints)})
         db.save_artifact(job_id, "complaints_json", _dump(all_complaints))

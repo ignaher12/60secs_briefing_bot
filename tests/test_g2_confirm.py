@@ -1,3 +1,4 @@
+import asyncio
 import pytest
 from wedge.g2_confirm import confirm_on_g2
 from wedge.types import Candidate
@@ -23,3 +24,24 @@ async def test_confirm_keeps_only_real_g2_entries(fixtures_dir):
     assert out[0].name == "Asana"
     assert out[0].review_count == 11234
     assert out[0].avg_rating == 4.3
+
+
+class ConcurrencyBD:
+    def __init__(self):
+        self.in_flight = 0
+        self.max_in_flight = 0
+    async def fetch(self, url):
+        self.in_flight += 1
+        self.max_in_flight = max(self.max_in_flight, self.in_flight)
+        await asyncio.sleep(0.05)
+        self.in_flight -= 1
+        return '<meta content="4.0" itemprop="ratingValue"><meta content="100" itemprop="reviewCount">'
+
+
+@pytest.mark.asyncio
+async def test_confirm_fetches_candidates_concurrently():
+    bd = ConcurrencyBD()
+    candidates = [Candidate(name=f"Product{i}", mention_count=1) for i in range(4)]
+    out = await confirm_on_g2(candidates, bd=bd, max_keep=5)
+    assert bd.max_in_flight > 1
+    assert len(out) == 4

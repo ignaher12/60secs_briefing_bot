@@ -1,3 +1,4 @@
+import asyncio
 import re
 from html.parser import HTMLParser
 from wedge.types import Competitor, Complaint, PlannerOutput
@@ -36,11 +37,17 @@ async def _mine_reddit_via_serp(competitor: Competitor, plan: PlannerOutput, *, 
     except Exception:
         return []
     reddit_urls = [r["link"] for r in results if "reddit.com" in r.get("link","")][:3]
-    out: list[Complaint] = []
-    for url in reddit_urls:
+
+    async def _fetch(url):
         try:
-            body = await bd.fetch(url)
+            return url, await bd.fetch(url)
         except Exception:
+            return url, None
+
+    fetched = await asyncio.gather(*(_fetch(url) for url in reddit_urls))
+    out: list[Complaint] = []
+    for url, body in fetched:
+        if body is None:
             continue
         out.append(Complaint(
             competitor=competitor.name, source="reddit", url=url,
@@ -50,6 +57,8 @@ async def _mine_reddit_via_serp(competitor: Competitor, plan: PlannerOutput, *, 
     return out
 
 async def mine_complaints(competitor: Competitor, plan: PlannerOutput, *, bd) -> list[Complaint]:
-    g2 = await _mine_g2(competitor, bd=bd)
-    rd = await _mine_reddit_via_serp(competitor, plan, bd=bd)
+    g2, rd = await asyncio.gather(
+        _mine_g2(competitor, bd=bd),
+        _mine_reddit_via_serp(competitor, plan, bd=bd),
+    )
     return g2 + rd
